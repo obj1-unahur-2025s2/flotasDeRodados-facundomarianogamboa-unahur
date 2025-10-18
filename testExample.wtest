@@ -1,9 +1,147 @@
-import example.pepita
+import rodados.*
+import municipalidad.*
 
-describe "group of tests for pepita" {
+describe "Test con 2 dependencias juntas" {
+  test "Test Dependencia: Deporte y cultura" {
+    const deporte = new Dependencia(cantidadDeEmpleados = 45)
+    const cultura = new Dependencia(cantidadDeEmpleados = 31)
+    var cachito = new Corsa(color="rojo")
 
-  test "pepita has initial energy" {
-    assert.equals(100, pepita.energy())
+    deporte.agregarAFlota(cachito)
+    deporte.agregarAFlota(new Corsa(color="azul"))
+    deporte.agregarAFlota(new Corsa(color="verde"))
+    deporte.agregarAFlota(new Kwid(tanqueAdicional = true))
+    deporte.agregarAFlota(new AutoEspecial(capacidad=5,velocidad=160,peso=1200,color="beige"))
+
+    cultura.agregarAFlota(cachito)
+    cultura.agregarAFlota(new Kwid(tanqueAdicional = true))
+    cultura.agregarAFlota(new Kwid(tanqueAdicional = true))
+    cultura.agregarAFlota(new Kwid(tanqueAdicional = false))
+    cultura.agregarAFlota(traffic)
+
+    assert.equals(deporte.pesoTotalFlota(), 6450)
+    assert.that(deporte.estaBienEquipada())
+    assert.equals(deporte.capacidadTotalEnColor("azul"), 7)
+    assert.equals(deporte.colorDelRodadoMasRapido(), "beige")
+    assert.equals(deporte.capacidadFaltante(), 25)
+
+    assert.equals(cultura.pesoTotalFlota(), 10700)
+    assert.notThat(cultura.estaBienEquipada())
+    assert.equals(cultura.capacidadTotalEnColor("azul"), 10)
+    assert.equals(cultura.colorDelRodadoMasRapido(), "rojo")
+    assert.equals(cultura.capacidadFaltante(), 5)
+  }
+}
+describe "Test con 2 dependencias" {
+  test "Test Dependencia: Deporte" {
+    const deporte = new Dependencia(cantidadDeEmpleados = 45)
+    var cachito = new Corsa(color="rojo")
+    
+    deporte.agregarAFlota(cachito)
+    deporte.agregarAFlota(new Corsa(color="azul"))
+    deporte.agregarAFlota(new Corsa(color="verde"))
+    deporte.agregarAFlota(new Kwid(tanqueAdicional = true))
+    deporte.agregarAFlota(new AutoEspecial(capacidad=5,velocidad=160,peso=1200,color="beige"))
+
+    assert.equals(deporte.pesoTotalFlota(), 6450)
+    assert.that(deporte.estaBienEquipada())
+    assert.equals(deporte.capacidadTotalEnColor("azul"), 7)
+    assert.equals(deporte.colorDelRodadoMasRapido(), "beige")
+    assert.equals(deporte.capacidadFaltante(), 25)
   }
 
+  test "Test Dependencia: Cultura" {
+    const cultura = new Dependencia(cantidadDeEmpleados = 31)
+    var cachito = new Corsa(color="rojo")
+    
+    cultura.agregarAFlota(cachito)
+    cultura.agregarAFlota(new Kwid(tanqueAdicional = true))
+    cultura.agregarAFlota(new Kwid(tanqueAdicional = true))
+    cultura.agregarAFlota(new Kwid(tanqueAdicional = false))
+    cultura.agregarAFlota(traffic)
+
+    assert.equals(cultura.pesoTotalFlota(), 10700)
+    assert.notThat(cultura.estaBienEquipada())
+    assert.equals(cultura.capacidadTotalEnColor("azul"), 10)
+    assert.equals(cultura.colorDelRodadoMasRapido(), "rojo")
+    assert.equals(cultura.capacidadFaltante(), 5)
+  }
+}
+
+describe "Etapa 2: Test de pedidos" {
+  test "Test de pedido: cachito satisface"{
+    const unPedido = new Pedido(distancia=960,tiempoMax=8,cantPasajeros=4,coloresIncompatibles=#{"azul","negro"})
+    const cachito = new Corsa(color="rojo")
+
+    assert.that(unPedido.satisfacePedido(cachito))
+  }
+  test "Test de pedido: cachito no satisface por su color"{
+    const unPedido = new Pedido(distancia=960,tiempoMax=8,cantPasajeros=4,coloresIncompatibles=#{"azul","negro"})
+    unPedido.agregarColorIncompatible("rojo")
+    const cachito = new Corsa(color="rojo")
+
+    assert.notThat(unPedido.satisfacePedido(cachito))    
+  }
+    test "Test de pedido: cachito no satisface por el tiempo maximo"{
+    const unPedido = new Pedido(distancia=960,tiempoMax=6,cantPasajeros=4,coloresIncompatibles=#{"azul","negro"})
+    const cachito = new Corsa(color="rojo")
+
+    assert.notThat(unPedido.satisfacePedido(cachito))    
+  }
+}
+
+describe "Etapa 3: Test de registro de pedidos" {
+  test "Test de registro de pedido: Total de pasajeros"{
+    const dependencia = new Dependencia(cantidadDeEmpleados = 60)
+
+    const pedido1 = new Pedido(distancia=960,tiempoMax=8,cantPasajeros=4,coloresIncompatibles=#{"azul","negro"})
+    const pedido2 = new Pedido(distancia=960,tiempoMax=8,cantPasajeros=7,coloresIncompatibles=#{"azul","negro"})
+    const pedido3 = new Pedido(distancia=960,tiempoMax=8,cantPasajeros=6,coloresIncompatibles=#{"azul","negro"})
+    const pedido4 = new Pedido(distancia=960,tiempoMax=8,cantPasajeros=12,coloresIncompatibles=#{"azul","negro"})
+    const pedido5 = new Pedido(distancia=960,tiempoMax=8,cantPasajeros=3,coloresIncompatibles=#{"azul","negro"})
+    
+    dependencia.agregarPedido(pedido1)
+    dependencia.agregarPedido(pedido2)
+    dependencia.agregarPedido(pedido3)
+    dependencia.agregarPedido(pedido4)
+    dependencia.agregarPedido(pedido5)
+    
+    assert.equals(dependencia.totalDePasajerosDePedidos(), 32)
+  }
+
+  test "Test de registro de pedido: Lista de pedidos que no pueden ser satisfechos (lista llena)"{
+    const dependencia = new Dependencia(cantidadDeEmpleados = 60)
+
+    const pedido1 = new Pedido(distancia=960,tiempoMax=8,cantPasajeros=4,coloresIncompatibles=#{"azul","negro"})
+    const pedido2 = new Pedido(distancia=960,tiempoMax=8,cantPasajeros=5,coloresIncompatibles=#{"verde"})
+    const pedido3 = new Pedido(distancia=960,tiempoMax=6,cantPasajeros=4,coloresIncompatibles=#{"verde"})
+    
+    dependencia.agregarAFlota(new Corsa(color="azul"))
+    dependencia.agregarAFlota(new Corsa(color="negro"))
+
+    dependencia.agregarPedido(pedido1) // No satisface por los colores incompatibles
+    dependencia.agregarPedido(pedido2) // No satisface por la cantidad de pasajeros
+    dependencia.agregarPedido(pedido3) // no satisface por la velocidad maxima requerida
+    // los 3 pedidos entran en la lista de no satisfechos
+    
+    assert.equals(dependencia.pedidosQueNoPuedenSatisfacerse(), [pedido1,pedido2,pedido3])
+  }
+
+    test "Test de registro de pedido: Verificar que TODOS los pedidos son incompatibles con azul"{
+    const dependencia = new Dependencia(cantidadDeEmpleados = 60)
+
+    const pedido1 = new Pedido(distancia=960,tiempoMax=8,cantPasajeros=4,coloresIncompatibles=#{"azul","negro"})
+    const pedido2 = new Pedido(distancia=960,tiempoMax=8,cantPasajeros=7,coloresIncompatibles=#{"azul","rojo"})
+    const pedido3 = new Pedido(distancia=960,tiempoMax=8,cantPasajeros=6,coloresIncompatibles=#{"azul","verde"})
+    const pedido4 = new Pedido(distancia=960,tiempoMax=8,cantPasajeros=2,coloresIncompatibles=#{"azul","blanco"})
+    const pedido5 = new Pedido(distancia=960,tiempoMax=8,cantPasajeros=3,coloresIncompatibles=#{"azul","gris"})
+    
+    dependencia.agregarPedido(pedido1)
+    dependencia.agregarPedido(pedido2)
+    dependencia.agregarPedido(pedido3)
+    dependencia.agregarPedido(pedido4)
+    dependencia.agregarPedido(pedido5)
+    
+    assert.that(dependencia.esColorIncompatibleEnPedidos("azul"))
+  }
 }
